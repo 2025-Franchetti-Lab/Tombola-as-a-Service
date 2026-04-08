@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tombola as a Service — Specifiche di Progetto</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fb;
+      color: #1a1d23;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* ── LAYOUT ────────────────────────────────────── */
+    .page-wrap {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    nav {
+      width: 240px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e4e7ed;
+      padding: 32px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    nav .logo {
+      padding: 0 20px 24px;
+      border-bottom: 1px solid #e4e7ed;
+      margin-bottom: 16px;
+    }
+    nav .logo h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #c0392b;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    nav .logo p { font-size: 11px; color: #8a8f9a; margin-top: 2px; }
+
+    nav a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: #44495a;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    nav a:hover { background: #f3f4f7; color: #c0392b; }
+    nav a.active { border-left-color: #c0392b; color: #c0392b; font-weight: 600; background: #fef5f4; }
+    nav .nav-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #b0b5c0;
+      padding: 16px 20px 4px;
+    }
+
+    main {
+      flex: 1;
+      padding: 48px 56px;
+      max-width: 900px;
+    }
+
+    /* ── TYPOGRAPHY ────────────────────────────────── */
+    h1 { font-size: 32px; font-weight: 800; color: #1a1d23; margin-bottom: 8px; }
+    h2 { font-size: 22px; font-weight: 700; color: #1a1d23; margin: 48px 0 16px; padding-bottom: 10px; border-bottom: 2px solid #e4e7ed; }
+    h3 { font-size: 16px; font-weight: 700; color: #2c3040; margin: 28px 0 10px; }
+    h4 { font-size: 14px; font-weight: 600; color: #44495a; margin: 20px 0 8px; }
+    p  { margin-bottom: 12px; color: #44495a; }
+    ul, ol { padding-left: 20px; margin-bottom: 12px; color: #44495a; }
+    li { margin-bottom: 4px; }
+
+    .subtitle {
+      font-size: 16px;
+      color: #8a8f9a;
+      margin-bottom: 40px;
+    }
+
+    /* ── BADGE ─────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .03em;
+      vertical-align: middle;
+    }
+    .badge-red    { background: #fdecea; color: #c0392b; }
+    .badge-green  { background: #eafaf1; color: #1a7d4b; }
+    .badge-blue   { background: #eaf3fd; color: #1a6bb5; }
+    .badge-gray   { background: #f0f1f4; color: #5a5f6e; }
+    .badge-orange { background: #fef6ec; color: #b86a00; }
+
+    /* ── TABLES ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 16px 0 24px; border-radius: 8px; border: 1px solid #e4e7ed; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead { background: #f3f4f7; }
+    th { padding: 10px 14px; text-align: left; font-weight: 600; color: #44495a; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #e4e7ed; }
+    td { padding: 10px 14px; border-bottom: 1px solid #f0f1f4; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafbfc; }
+    code { font-family: 'SF Mono', 'Fira Mono', Consolas, monospace; font-size: 12.5px; background: #f0f1f4; padding: 2px 5px; border-radius: 4px; color: #c0392b; }
+
+    /* ── INFO BOXES ────────────────────────────────── */
+    .info-box {
+      border-left: 4px solid #3498db;
+      background: #eaf3fd;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #1a4a6e;
+    }
+    .info-box.warning { border-color: #e67e22; background: #fef6ec; color: #7a4000; }
+    .info-box.success { border-color: #27ae60; background: #eafaf1; color: #145a32; }
+    .info-box strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
+
+    /* ── SCHEMA CARD ───────────────────────────────── */
+    .schema-card {
+      background: #fff;
+      border: 1px solid #e4e7ed;
+      border-radius: 10px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .schema-card-header {
+      background: #f3f4f7;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #e4e7ed;
+    }
+    .schema-card-header .table-name {
+      font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1d23;
+    }
+    .schema-card-header .table-desc { font-size: 12px; color: #8a8f9a; margin-left: auto; }
+
+    /* ── STATE MACHINE ─────────────────────────────── */
+    .state-flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .state-box {
+      background: #fff;
+      border: 2px solid #e4e7ed;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #44495a;
+      text-align: center;
+    }
+    .state-box.active  { border-color: #27ae60; color: #1a7d4b; background: #eafaf1; }
+    .state-box.warn    { border-color: #e67e22; color: #b86a00; background: #fef6ec; }
+    .state-box.end     { border-color: #7f8c8d; color: #5a5f6e; background: #f0f1f4; }
+    .state-box .state-label { font-size: 10px; font-weight: 400; opacity: .7; margin-top: 2px; }
+    .state-arrow { font-size: 20px; color: #b0b5c0; padding: 0 8px; }
+
+    /* ── WIN BADGES ────────────────────────────────── */
+    .win-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .win-pill {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid;
+    }
+    .win-pill.w1 { background: #eaf3fd; border-color: #3498db; color: #1a6bb5; }
+    .win-pill.w2 { background: #eafaf1; border-color: #27ae60; color: #1a7d4b; }
+    .win-pill.w3 { background: #fef6ec; border-color: #e67e22; color: #b86a00; }
+    .win-pill.w4 { background: #fdecea; border-color: #e74c3c; color: #c0392b; }
+    .win-pill.w5 { background: #f5eef8; border-color: #9b59b6; color: #6c3483; }
+    .win-num { font-size: 10px; font-weight: 400; display: block; text-align: center; margin-top: 2px; opacity: .8; }
+
+    /* ── FOOTER ────────────────────────────────────── */
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #e4e7ed;
+      font-size: 12px;
+      color: #b0b5c0;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ── SIDEBAR ─────────────────────────────────── -->
+  <nav>
+    <div class="logo">
+      <h2>TaaS</h2>
+      <p>Tombola as a Service</p>
+    </div>
+    <span class="nav-section">Introduzione</span>
+    <a href="#overview">Panoramica</a>
+    <a href="#glossario">Glossario</a>
+    <a href="#convenzioni">Convenzioni DB</a>
+
+    <span class="nav-section">Database</span>
+    <a href="#schema">Schema generale</a>
+    <a href="#utenti">Tabella utenti</a>
+    <a href="#tombolate">Tabella tombolate</a>
+    <a href="#tombolate-utenti">Tabella tombolate_utenti</a>
+    <a href="#cartelle">Tabella cartelle</a>
+    <a href="#numeri-cartella">Tabella numeri_cartella</a>
+    <a href="#estrazioni">Tabella estrazioni</a>
+    <a href="#vincite">Tabella vincite</a>
+
+    <span class="nav-section">Regole</span>
+    <a href="#stati">Stati tombolata</a>
+    <a href="#vincite-regole">Vincite</a>
+    <a href="#business">Regole di business</a>
+  </nav>
+
+  <!-- ── MAIN CONTENT ────────────────────────────── -->
+  <main>
+
+    <h1>Tombola as a Service</h1>
+    <p class="subtitle">Specifiche di progetto — piattaforma TaaS &nbsp;·&nbsp; Revisione 2.0</p>
+
+    <!-- ── PANORAMICA ──────────────────────────────── -->
+    <h2 id="overview">Panoramica</h2>
+    <p>
+      <strong>Tombola as a Service (TaaS)</strong> è una piattaforma software che consente di creare e gestire sessioni del gioco della tombola — chiamate <em>tombolate</em> — esponendo un insieme di API REST per orchestrare l'intero ciclo di vita del gioco.
+    </p>
+    <p>Le funzionalità principali erogate dalla piattaforma sono:</p>
+    <ul>
+      <li>Creazione e gestione delle <strong>tombolate</strong> (sessioni di gioco), con configurazione del gestore, delle date e della modalità di autenticazione.</li>
+      <li>Creazione e assegnazione delle <strong>cartelle</strong> agli utenti, in modalità automatica o manuale.</li>
+      <li>Gestione degli <strong>utenti</strong> partecipanti, con supporto a più metodi di autenticazione.</li>
+      <li><strong>Estrazione</strong> casuale dei numeri (1–90) con recupero dell'ultimo numero, degli ultimi cinque o di tutti i numeri usciti.</li>
+      <li><strong>Controllo automatico delle vincite</strong> (ambo, terno, quaterna, cinquina, tombola) con possibilità di conferma manuale da parte del gestore.</li>
+    </ul>
+
+    <!-- ── GLOSSARIO ───────────────────────────────── -->
+    <h2 id="glossario">Glossario</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Termine</th><th>Significato</th></tr></thead>
+        <tbody>
+          <tr><td><code>tombolata</code></td><td>Sessione di gioco della tombola. Corrisponde alla tabella <code>tombolate</code>.</td></tr>
+          <tr><td><code>gestore</code></td><td>L'utente/operatore che crea e amministra la tombolata; ha accesso alle API riservate.</td></tr>
+          <tr><td><code>cartella</code></td><td>Scheda di gioco con 15 numeri distribuiti su 3 righe × 9 colonne (5 numeri per riga).</td></tr>
+          <tr><td><code>estrazione</code></td><td>Sorteggio di un numero tra 1 e 90 non ancora uscito nella tombolata.</td></tr>
+          <tr><td><code>vincita</code></td><td>Combinazione premiante raggiunta su una cartella: ambo, terno, quaterna, cinquina o tombola.</td></tr>
+          <tr><td><code>decile</code></td><td>Raggruppamento dei numeri per colonna: col. 1 → 1–9, col. 2 → 10–19, …, col. 9 → 80–90.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── CONVENZIONI DB ─────────────────────────── -->
+    <h2 id="convenzioni">Convenzioni del Database</h2>
+
+    <h3>Nomenclatura colonne — camelCase</h3>
+    <p>Tutti i nomi di colonna seguono la notazione <strong>camelCase</strong>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Esempio</th><th>Nota</th></tr></thead>
+        <tbody>
+          <tr><td><code>authMethod</code></td><td>Parole multiple → prima minuscola, seguenti con iniziale maiuscola</td></tr>
+          <tr><td><code>createdAt</code></td><td>Timestamp di creazione</td></tr>
+          <tr><td><code>dataFineAssegnazioneCartelle</code></td><td>Nomi lunghi restano leggibili grazie al camelCase</td></tr>
+          <tr><td><code>tipoVincita</code></td><td>Nessun underscore</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Chiavi primarie — nome tabella + Id</h3>
+    <p>La chiave primaria di ogni tabella prende il nome dal <strong>singolare della tabella</strong> seguito da <code>Id</code>, in modo che le chiavi esterne corrispondano esattamente alla PK referenziata.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tabella</th><th>Chiave primaria</th><th>Chiave esterna (negli altri record)</th></tr></thead>
+        <tbody>
+          <tr><td><code>utenti</code></td><td><code>utenteId</code></td><td><code>utenteId</code></td></tr>
+          <tr><td><code>tombolate</code></td><td><code>tombolataId</code></td><td><code>tombolataId</code></td></tr>
+          <tr><td><code>tombolate_utenti</code></td><td><code>tombolataUtenteId</code></td><td>—</td></tr>
+          <tr><td><code>cartelle</code></td><td><code>cartellaId</code></td><td><code>cartellaId</code></td></tr>
+          <tr><td><code>numeri_cartella</code></td><td><code>numeroCartellaId</code></td><td>—</td></tr>
+          <tr><td><code>estrazioni</code></td><td><code>estrazioneId</code></td><td>—</td></tr>
+          <tr><td><code>vincite</code></td><td><code>vincitaId</code></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Scelte architetturali</h3>
+    <ul>
+      <li>Il database espone <strong>solo tabelle e vincoli</strong> (CHECK, UNIQUE, FK). Trigger, stored procedure e viste sono esclusi: la logica è interamente a carico del livello applicativo.</li>
+      <li>Il campo <code>updatedAt</code> viene aggiornato dall'applicazione ad ogni scrittura.</li>
+      <li>I valori ammessi per <code>tipoVincita</code> sono imposti da un <code>CHECK</code> inline sulla colonna, senza ricorrere a una tabella di riferimento separata.</li>
+    </ul>
+
+    <!-- ── SCHEMA GENERALE ────────────────────────── -->
+    <h2 id="schema">Schema generale</h2>
+    <p>Il database è composto da <strong>7 tabelle</strong>. Le relazioni principali sono:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tabella</th><th>Dipende da</th><th>Descrizione</th></tr></thead>
+        <tbody>
+          <tr><td><code>utenti</code></td><td>—</td><td>Utenti registrati alla piattaforma</td></tr>
+          <tr><td><code>tombolate</code></td><td>—</td><td>Sessioni di gioco</td></tr>
+          <tr><td><code>tombolate_utenti</code></td><td><code>tombolate</code>, <code>utenti</code></td><td>Partecipanti registrati a una tombolata</td></tr>
+          <tr><td><code>cartelle</code></td><td><code>tombolate</code>, <code>utenti</code></td><td>Cartelle di gioco (assegnate o libere)</td></tr>
+          <tr><td><code>numeri_cartella</code></td><td><code>cartelle</code></td><td>I 15 numeri di ogni cartella, con riga e colonna</td></tr>
+          <tr><td><code>estrazioni</code></td><td><code>tombolate</code></td><td>Numeri estratti in ordine progressivo</td></tr>
+          <tr><td><code>vincite</code></td><td><code>tombolate</code>, <code>cartelle</code>, <code>utenti</code></td><td>Vincite registrate per cartella e tipo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── UTENTI ──────────────────────────────────── -->
+    <h2 id="utenti">Tabella <code>utenti</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">utenti</span>
+        <span class="badge badge-blue">PK: utenteId</span>
+        <span class="table-desc">Utenti della piattaforma</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>utenteId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>nome</code></td><td>TEXT / VARCHAR(100)</td><td>NOT NULL</td><td>Nome dell'utente</td></tr>
+            <tr><td><code>cognome</code></td><td>TEXT / VARCHAR(100)</td><td>NOT NULL</td><td>Cognome dell'utente</td></tr>
+            <tr><td><code>email</code></td><td>TEXT / VARCHAR(255)</td><td>NOT NULL, UNIQUE</td><td>Indirizzo email (usato per il login)</td></tr>
+            <tr><td><code>authMethod</code></td><td>TEXT / ENUM</td><td>NOT NULL, default <code>'password'</code></td><td>Metodo di autenticazione: <code>password</code>, <code>otp</code>, <code>oauth</code>, <code>magic_link</code></td></tr>
+            <tr><td><code>authData</code></td><td>TEXT</td><td>nullable</td><td>Hash password, token OAuth, ecc.</td></tr>
+            <tr><td><code>attivo</code></td><td>INTEGER / TINYINT</td><td>NOT NULL, default <code>1</code></td><td><code>0</code> = utente disabilitato (soft-delete)</td></tr>
+            <tr><td><code>createdAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Data di registrazione</td></tr>
+            <tr><td><code>updatedAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Ultimo aggiornamento</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TOMBOLATE ───────────────────────────────── -->
+    <h2 id="tombolate">Tabella <code>tombolate</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">tombolate</span>
+        <span class="badge badge-blue">PK: tombolataId</span>
+        <span class="table-desc">Sessioni di gioco</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>nome</code></td><td>TEXT / VARCHAR(200)</td><td>NOT NULL</td><td>Nome della tombolata</td></tr>
+            <tr><td><code>gestoreNome</code></td><td>TEXT / VARCHAR(200)</td><td>NOT NULL</td><td>Nome del gestore della sessione</td></tr>
+            <tr><td><code>authMethodUtenti</code></td><td>TEXT / ENUM</td><td>NOT NULL, default <code>'password'</code></td><td>Metodo di autenticazione imposto agli utenti: <code>password</code>, <code>otp</code>, <code>oauth</code>, <code>magic_link</code>, <code>none</code></td></tr>
+            <tr><td><code>dataAttivazione</code></td><td>TEXT / DATETIME</td><td>nullable</td><td>Data e ora pianificate per l'inizio del gioco</td></tr>
+            <tr><td><code>dataFineAssegnazioneCartelle</code></td><td>TEXT / DATETIME</td><td>nullable</td><td>Deadline entro cui assegnare le cartelle agli utenti</td></tr>
+            <tr><td><code>stato</code></td><td>TEXT / ENUM</td><td>NOT NULL, default <code>'creata'</code></td><td>Stato corrente (vedi macchina a stati)</td></tr>
+            <tr><td><code>createdAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Data di creazione</td></tr>
+            <tr><td><code>updatedAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Ultimo aggiornamento</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TOMBOLATE_UTENTI ────────────────────────── -->
+    <h2 id="tombolate-utenti">Tabella <code>tombolate_utenti</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">tombolate_utenti</span>
+        <span class="badge badge-blue">PK: tombolataUtenteId</span>
+        <span class="badge badge-gray">FK: tombolataId, utenteId</span>
+        <span class="table-desc">Partecipanti per tombolata</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>tombolataUtenteId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>tombolate</code></td><td>Tombolata di riferimento</td></tr>
+            <tr><td><code>utenteId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>utenti</code></td><td>Utente partecipante</td></tr>
+            <tr><td><code>joinedAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Data di iscrizione alla tombolata</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Vincolo UNIQUE</strong>
+      La coppia (<code>tombolataId</code>, <code>utenteId</code>) è univoca: un utente non può iscriversi due volte alla stessa tombolata.
+    </div>
+
+    <!-- ── CARTELLE ────────────────────────────────── -->
+    <h2 id="cartelle">Tabella <code>cartelle</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">cartelle</span>
+        <span class="badge badge-blue">PK: cartellaId</span>
+        <span class="badge badge-gray">FK: tombolataId, utenteId</span>
+        <span class="table-desc">Schede di gioco</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>cartellaId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>tombolate</code></td><td>Tombolata a cui appartiene la cartella</td></tr>
+            <tr><td><code>utenteId</code></td><td>INTEGER / INT UNSIGNED</td><td>nullable, FK → <code>utenti</code></td><td><code>NULL</code> = cartella non ancora assegnata</td></tr>
+            <tr><td><code>createdAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Data di creazione</td></tr>
+            <tr><td><code>updatedAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Ultimo aggiornamento (es. quando viene assegnata)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── NUMERI_CARTELLA ────────────────────────── -->
+    <h2 id="numeri-cartella">Tabella <code>numeri_cartella</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">numeri_cartella</span>
+        <span class="badge badge-blue">PK: numeroCartellaId</span>
+        <span class="badge badge-gray">FK: cartellaId</span>
+        <span class="table-desc">15 numeri per cartella</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>numeroCartellaId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>cartellaId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>cartelle</code></td><td>Cartella di appartenenza</td></tr>
+            <tr><td><code>numero</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>NOT NULL, CHECK 1–90</td><td>Valore del numero sulla cartella</td></tr>
+            <tr><td><code>riga</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>NOT NULL, CHECK 1–3</td><td>Riga della cartella (1, 2 o 3)</td></tr>
+            <tr><td><code>colonna</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>NOT NULL, CHECK 1–9</td><td>Colonna della cartella (1–9, decile del numero)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Vincoli di integrità strutturale</strong>
+      Oltre ai CHECK sui range, il DB applica:<br>
+      • <strong>UNIQUE</strong> (<code>cartellaId</code>, <code>numero</code>) — nessun numero duplicato nella stessa cartella.<br>
+      • <strong>UNIQUE</strong> (<code>cartellaId</code>, <code>riga</code>, <code>colonna</code>) — una sola cella per posizione.<br>
+      • <strong>CHECK decile</strong> — la colonna deve corrispondere al decile del numero (es. numero 35 → colonna 4, range 30–39).
+    </div>
+    <div class="info-box warning">
+      <strong>Unicità numeri tra cartelle dello stesso utente</strong>
+      Un utente non può avere lo stesso numero in due cartelle diverse della medesima tombolata. Questo vincolo, non esprimibile come semplice constraint DDL, è verificato a livello applicativo prima di ogni assegnazione.
+    </div>
+
+    <!-- ── ESTRAZIONI ──────────────────────────────── -->
+    <h2 id="estrazioni">Tabella <code>estrazioni</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">estrazioni</span>
+        <span class="badge badge-blue">PK: estrazioneId</span>
+        <span class="badge badge-gray">FK: tombolataId</span>
+        <span class="table-desc">Numeri estratti in ordine</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>estrazioneId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>tombolate</code></td><td>Tombolata di riferimento</td></tr>
+            <tr><td><code>numero</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>NOT NULL, CHECK 1–90</td><td>Numero estratto</td></tr>
+            <tr><td><code>ordine</code></td><td>INTEGER / SMALLINT UNSIGNED</td><td>NOT NULL</td><td>Progressivo di estrazione (1 = primo)</td></tr>
+            <tr><td><code>estrattoAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Timestamp dell'estrazione</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="info-box success">
+      <strong>Garanzia di unicità</strong>
+      <strong>UNIQUE</strong> (<code>tombolataId</code>, <code>numero</code>) impedisce che lo stesso numero venga estratto due volte nella stessa tombolata.
+    </div>
+
+    <!-- ── VINCITE ─────────────────────────────────── -->
+    <h2 id="vincite">Tabella <code>vincite</code></h2>
+    <div class="schema-card">
+      <div class="schema-card-header">
+        <span class="table-name">vincite</span>
+        <span class="badge badge-blue">PK: vincitaId</span>
+        <span class="badge badge-gray">FK: tombolataId, cartellaId, utenteId</span>
+        <span class="table-desc">Combinazioni premianti</span>
+      </div>
+      <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
+        <table>
+          <thead><tr><th>Colonna</th><th>Tipo</th><th>Vincoli</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>vincitaId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
+            <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>tombolate</code></td><td>Tombolata di riferimento</td></tr>
+            <tr><td><code>cartellaId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>cartelle</code></td><td>Cartella su cui è avvenuta la vincita</td></tr>
+            <tr><td><code>utenteId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>utenti</code></td><td>Utente che ha vinto</td></tr>
+            <tr><td><code>tipoVincita</code></td><td>TEXT / VARCHAR(20)</td><td>NOT NULL, CHECK enum</td><td><code>ambo</code> | <code>terno</code> | <code>quaterna</code> | <code>cinquina</code> | <code>tombola</code></td></tr>
+            <tr><td><code>riga</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>nullable, CHECK 1–3</td><td>Riga dove è avvenuta la vincita (<code>NULL</code> per tombola)</td></tr>
+            <tr><td><code>numeroEstratto</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>nullable</td><td>Numero che ha completato la vincita</td></tr>
+            <tr><td><code>confermata</code></td><td>INTEGER / TINYINT</td><td>NOT NULL, default <code>0</code></td><td><code>0</code> = rilevata automaticamente · <code>1</code> = confermata dal gestore</td></tr>
+            <tr><td><code>vintaAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Timestamp della vincita</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Vincolo UNIQUE</strong>
+      La tripla (<code>tombolataId</code>, <code>cartellaId</code>, <code>tipoVincita</code>) è univoca: una cartella può vincere ogni tipo di premio al massimo una volta.
+    </div>
+
+    <!-- ── STATI ───────────────────────────────────── -->
+    <h2 id="stati">Stati di una tombolata</h2>
+    <p>Lo stato della tombolata segue una transizione <strong>unidirezionale</strong>, gestita interamente dal livello applicativo:</p>
+
+    <div class="state-flow">
+      <div class="state-box">
+        <div>creata</div>
+        <div class="state-label">configurazione</div>
+      </div>
+      <div class="state-arrow">→</div>
+      <div class="state-box active">
+        <div>aperta</div>
+        <div class="state-label">assegnazione cartelle</div>
+      </div>
+      <div class="state-arrow">→</div>
+      <div class="state-box warn">
+        <div>attiva</div>
+        <div class="state-label">estrazione numeri</div>
+      </div>
+      <div class="state-arrow">→</div>
+      <div class="state-box end">
+        <div>terminata</div>
+        <div class="state-label">gioco concluso</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Stato</th><th>Operazioni consentite</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-gray">creata</span></td><td>Modifica configurazione, aggiunta cartelle</td></tr>
+          <tr><td><span class="badge badge-green">aperta</span></td><td>Iscrizione utenti, assegnazione cartelle</td></tr>
+          <tr><td><span class="badge badge-orange">attiva</span></td><td>Estrazione numeri, controllo vincite</td></tr>
+          <tr><td><span class="badge badge-gray">terminata</span></td><td>Sola lettura; nessuna operazione di scrittura</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── VINCITE REGOLE ─────────────────────────── -->
+    <h2 id="vincite-regole">Tipi di vincita</h2>
+    <p>Le vincite sono assegnate in ordine crescente. Su una <strong>riga</strong> di 5 numeri:</p>
+
+    <div class="win-flow">
+      <div class="win-pill w1">Ambo<span class="win-num">2 numeri</span></div>
+      <div class="state-arrow">→</div>
+      <div class="win-pill w2">Terno<span class="win-num">3 numeri</span></div>
+      <div class="state-arrow">→</div>
+      <div class="win-pill w3">Quaterna<span class="win-num">4 numeri</span></div>
+      <div class="state-arrow">→</div>
+      <div class="win-pill w4">Cinquina<span class="win-num">5 numeri (riga intera)</span></div>
+      <div class="state-arrow">→</div>
+      <div class="win-pill w5">Tombola<span class="win-num">15 numeri (cartella intera)</span></div>
+    </div>
+
+    <div class="info-box warning">
+      <strong>Esclusione progressiva</strong>
+      Un utente che ha conquistato una vincita di livello N non può concorrere al livello N+1. L'esclusione avviene a livello di utente, non di singola cartella, ed è gestita dal livello applicativo.
+    </div>
+
+    <!-- ── REGOLE DI BUSINESS ─────────────────────── -->
+    <h2 id="business">Regole di business principali</h2>
+    <ol>
+      <li><strong>Unicità numeri per utente nella tombolata</strong> — nessun numero può comparire in due cartelle diverse dello stesso utente nella stessa tombolata.</li>
+      <li><strong>Struttura cartella</strong> — ogni cartella ha esattamente 3 righe, 9 colonne e 5 numeri per riga (15 totali). La colonna è determinata dal decile del numero.</li>
+      <li><strong>Colonna coerente con il decile</strong> — vincolo CHECK nel DB: colonna 1 → numeri 1–9, colonna 2 → 10–19, …, colonna 9 → 80–90.</li>
+      <li><strong>Vincite in ordine crescente</strong> — ambo, terno, quaterna, cinquina, tombola. Un utente con il livello N vinto è escluso dal livello N+1.</li>
+      <li><strong>Estrazione senza ripetizione</strong> — ogni numero (1–90) può essere estratto al massimo una volta per tombolata (vincolo UNIQUE nel DB).</li>
+      <li><strong>Deadline assegnazione</strong> — dopo <code>dataFineAssegnazioneCartelle</code> non è possibile assegnare nuove cartelle.</li>
+      <li><strong>Transizione stati unidirezionale</strong> — <code>creata → aperta → attiva → terminata</code>; nessun ritorno a uno stato precedente.</li>
+    </ol>
+
+    <footer>
+      Tombola as a Service (TaaS) &nbsp;·&nbsp; Specifiche di progetto &nbsp;·&nbsp; Revisione 2.0 &nbsp;·&nbsp; Aprile 2026
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>

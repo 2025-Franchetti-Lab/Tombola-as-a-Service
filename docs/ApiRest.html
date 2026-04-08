@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaaS — Specifiche API REST</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fb;
+      color: #1a1d23;
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .page-wrap { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ───────────────────────────────────── */
+    nav {
+      width: 248px;
+      flex-shrink: 0;
+      background: #fff;
+      border-right: 1px solid #e4e7ed;
+      padding: 32px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    nav .logo { padding: 0 20px 24px; border-bottom: 1px solid #e4e7ed; margin-bottom: 16px; }
+    nav .logo h2 { font-size: 14px; font-weight: 700; color: #c0392b; letter-spacing: .04em; text-transform: uppercase; }
+    nav .logo p  { font-size: 11px; color: #8a8f9a; margin-top: 2px; }
+    nav a {
+      display: block; padding: 6px 20px; font-size: 12.5px; color: #44495a;
+      text-decoration: none; border-left: 3px solid transparent;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    nav a:hover { background: #f3f4f7; color: #c0392b; }
+    nav .nav-section {
+      font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: #b0b5c0; padding: 14px 20px 4px;
+    }
+    nav a .method-pill {
+      display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px;
+      border-radius: 3px; margin-right: 5px; vertical-align: middle;
+    }
+
+    /* ── MAIN ──────────────────────────────────────── */
+    main { flex: 1; padding: 48px 56px; max-width: 960px; }
+
+    h1 { font-size: 32px; font-weight: 800; color: #1a1d23; margin-bottom: 6px; }
+    h2 { font-size: 20px; font-weight: 700; color: #1a1d23; margin: 52px 0 18px; padding-bottom: 10px; border-bottom: 2px solid #e4e7ed; }
+    h3 { font-size: 15px; font-weight: 700; color: #2c3040; margin: 32px 0 10px; }
+    p  { margin-bottom: 10px; color: #44495a; }
+    .subtitle { font-size: 16px; color: #8a8f9a; margin-bottom: 40px; }
+
+    /* ── METHOD BADGES ─────────────────────────────── */
+    .method {
+      display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 9px;
+      border-radius: 5px; letter-spacing: .04em; vertical-align: middle; margin-right: 6px;
+    }
+    .GET    { background: #eafaf1; color: #1a7d4b; border: 1px solid #a9dfbf; }
+    .POST   { background: #eaf3fd; color: #1a6bb5; border: 1px solid #a9cce3; }
+    .PUT    { background: #fef6ec; color: #b86a00; border: 1px solid #f0c070; }
+    .DELETE { background: #fdecea; color: #c0392b; border: 1px solid #f1a9a0; }
+
+    /* ── ENDPOINT HEADER ───────────────────────────── */
+    .endpoint-header {
+      display: flex; align-items: baseline; gap: 8px;
+      margin: 32px 0 6px; flex-wrap: wrap;
+    }
+    .endpoint-path {
+      font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+      font-size: 15px; font-weight: 600; color: #1a1d23;
+    }
+    .endpoint-path .param { color: #e67e22; }
+    .endpoint-desc { font-size: 13px; color: #8a8f9a; }
+    .endpoint-tag {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+      background: #fdecea; color: #c0392b;
+    }
+
+    /* ── CODE BLOCKS ───────────────────────────────── */
+    pre {
+      background: #1e2230; color: #cdd6f4;
+      border-radius: 8px; padding: 16px 20px;
+      font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+      font-size: 12.5px; line-height: 1.6;
+      overflow-x: auto; margin: 10px 0 18px;
+    }
+    pre .key   { color: #89dceb; }
+    pre .str   { color: #a6e3a1; }
+    pre .num   { color: #fab387; }
+    pre .bool  { color: #cba6f7; }
+    pre .null  { color: #6c7086; }
+    pre .cmt   { color: #6c7086; font-style: italic; }
+
+    code {
+      font-family: 'SF Mono', 'Fira Mono', Consolas, monospace;
+      font-size: 12.5px; background: #f0f1f4;
+      padding: 2px 5px; border-radius: 4px; color: #c0392b;
+    }
+
+    /* ── RESPONSE LABELS ───────────────────────────── */
+    .res-label {
+      font-size: 11px; font-weight: 700; margin: 10px 0 2px;
+      display: flex; align-items: center; gap: 6px; color: #44495a;
+    }
+    .status { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .s200 { background: #eafaf1; color: #1a7d4b; }
+    .s201 { background: #eaf3fd; color: #1a6bb5; }
+    .s400 { background: #fef6ec; color: #b86a00; }
+    .s404 { background: #f0f1f4; color: #5a5f6e; }
+    .s409 { background: #fdecea; color: #c0392b; }
+    .s422 { background: #fdecea; color: #c0392b; }
+
+    /* ── TABLES ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 10px 0 20px; border-radius: 8px; border: 1px solid #e4e7ed; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: #f3f4f7; }
+    th { padding: 9px 14px; text-align: left; font-weight: 600; color: #44495a; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #e4e7ed; }
+    td { padding: 9px 14px; border-bottom: 1px solid #f0f1f4; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── INFO BOXES ────────────────────────────────── */
+    .info-box {
+      border-left: 4px solid #3498db; background: #eaf3fd;
+      border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0 20px;
+      font-size: 13.5px; color: #1a4a6e;
+    }
+    .info-box.warning { border-color: #e67e22; background: #fef6ec; color: #7a4000; }
+
+    /* ── DIVIDER ───────────────────────────────────── */
+    hr { border: none; border-top: 1px solid #e4e7ed; margin: 36px 0; }
+
+    /* ── SUMMARY TABLE ─────────────────────────────── */
+    .summary-method { font-weight: 700; font-size: 11px; }
+
+    footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid #e4e7ed; font-size: 12px; color: #b0b5c0; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ── SIDEBAR ─────────────────────────────────── -->
+  <nav>
+    <div class="logo">
+      <h2>TaaS API</h2>
+      <p>REST · v1 · Tombola as a Service</p>
+    </div>
+
+    <span class="nav-section">Convenzioni</span>
+    <a href="#convenzioni">Generali</a>
+    <a href="#http-codes">Codici HTTP</a>
+
+    <span class="nav-section">Utente /api/utente</span>
+    <a href="#utente-registra"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>registra</a>
+    <a href="#utente-login"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>login</a>
+    <a href="#utente-lista"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>lista</a>
+    <a href="#utente-get"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>{utenteId}</a>
+    <a href="#utente-put"><span class="method-pill PUT" style="background:#fef6ec;color:#b86a00;">PUT</span>{utenteId}</a>
+    <a href="#utente-delete"><span class="method-pill DELETE" style="background:#fdecea;color:#c0392b;">DEL</span>{utenteId}</a>
+
+    <span class="nav-section">Tombolata /api/tombolata</span>
+    <a href="#tombola-crea"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>crea</a>
+    <a href="#tombola-lista"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>lista</a>
+    <a href="#tombola-get"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>{tombolataId}</a>
+    <a href="#tombola-apri"><span class="method-pill PUT" style="background:#fef6ec;color:#b86a00;">PUT</span>apri</a>
+    <a href="#tombola-attiva"><span class="method-pill PUT" style="background:#fef6ec;color:#b86a00;">PUT</span>attiva</a>
+    <a href="#tombola-termina"><span class="method-pill PUT" style="background:#fef6ec;color:#b86a00;">PUT</span>termina</a>
+    <a href="#tombola-estrai"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>estrai</a>
+    <a href="#tombola-ultimo"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>ultimo-numero</a>
+    <a href="#tombola-cinque"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>ultimi-cinque</a>
+    <a href="#tombola-usciti"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>numeri-usciti</a>
+    <a href="#tombola-vincite-check"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>controlla-vincite</a>
+    <a href="#tombola-vincita-conferma"><span class="method-pill PUT" style="background:#fef6ec;color:#b86a00;">PUT</span>vincita/conferma</a>
+    <a href="#tombola-vincite"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>vincite</a>
+    <a href="#tombola-utente-add"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>utente</a>
+    <a href="#tombola-utenti"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>utenti</a>
+
+    <span class="nav-section">Cartella /api/cartella</span>
+    <a href="#cartella-crea"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>crea</a>
+    <a href="#cartella-assegna"><span class="method-pill POST" style="background:#eaf3fd;color:#1a6bb5;">POST</span>assegna</a>
+    <a href="#cartella-get"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>{cartellaId}</a>
+    <a href="#cartella-stato"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>{cartellaId}/stato</a>
+    <a href="#cartella-tombolata"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>tombolata/{id}</a>
+    <a href="#cartella-utente-tombola"><span class="method-pill GET" style="background:#eafaf1;color:#1a7d4b;">GET</span>utente/{id}/tombola</a>
+    <a href="#cartella-delete"><span class="method-pill DELETE" style="background:#fdecea;color:#c0392b;">DEL</span>{cartellaId}</a>
+
+    <span class="nav-section">Riepilogo</span>
+    <a href="#riepilogo">Tutti gli endpoint</a>
+    <a href="#regole">Regole di business</a>
+  </nav>
+
+  <!-- ── MAIN ────────────────────────────────────── -->
+  <main>
+    <h1>API REST — TaaS</h1>
+    <p class="subtitle">Tombola as a Service &nbsp;·&nbsp; Specifiche degli endpoint &nbsp;·&nbsp; v1</p>
+
+    <!-- ══ CONVENZIONI ══════════════════════════════ -->
+    <h2 id="convenzioni">Convenzioni generali</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Aspetto</th><th>Valore</th></tr></thead>
+        <tbody>
+          <tr><td>Base URL</td><td><code>https://&lt;host&gt;/api</code></td></tr>
+          <tr><td>Formato dati</td><td>JSON — <code>Content-Type: application/json</code></td></tr>
+          <tr><td>Autenticazione</td><td>Bearer token JWT nell'header <code>Authorization: Bearer &lt;token&gt;</code></td></tr>
+          <tr><td>Date</td><td>ISO 8601 — <code>YYYY-MM-DDTHH:MM:SSZ</code></td></tr>
+          <tr><td>Naming campi JSON</td><td><strong>camelCase</strong> — es. <code>tombolataId</code>, <code>gestoreNome</code>, <code>createdAt</code></td></tr>
+          <tr><td>Errori</td><td><code>{ "errore": "&lt;codice&gt;", "messaggio": "&lt;testo&gt;" }</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="http-codes">Codici HTTP utilizzati</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Codice</th><th>Significato</th></tr></thead>
+        <tbody>
+          <tr><td><span class="status s200">200</span></td><td>OK</td></tr>
+          <tr><td><span class="status s201">201</span></td><td>Risorsa creata</td></tr>
+          <tr><td><span class="status s400">400</span></td><td>Richiesta malformata / parametri non validi</td></tr>
+          <tr><td><span class="status s400">401</span></td><td>Non autenticato</td></tr>
+          <tr><td><span class="status s400">403</span></td><td>Non autorizzato (ruolo insufficiente)</td></tr>
+          <tr><td><span class="status s404">404</span></td><td>Risorsa non trovata</td></tr>
+          <tr><td><span class="status s409">409</span></td><td>Conflitto (es. numero già estratto)</td></tr>
+          <tr><td><span class="status s422">422</span></td><td>Regola di business violata</td></tr>
+          <tr><td><span class="status s409">500</span></td><td>Errore interno del server</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ UTENTE ════════════════════════════════════ -->
+    <h2>1. Utenti — <code>/api/utente</code></h2>
+
+    <!-- registra -->
+    <div class="endpoint-header" id="utente-registra">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/utente/registra</span>
+    </div>
+    <p class="endpoint-desc">Registra un nuovo utente nella piattaforma.</p>
+    <div class="res-label">Request body</div>
+<pre>{
+  <span class="key">"nome"</span>:       <span class="str">"Mario"</span>,
+  <span class="key">"cognome"</span>:    <span class="str">"Rossi"</span>,
+  <span class="key">"email"</span>:      <span class="str">"mario.rossi@example.com"</span>,
+  <span class="key">"authMethod"</span>: <span class="str">"password"</span>,
+  <span class="key">"password"</span>:   <span class="str">"s3cr3t!"</span>
+}</pre>
+    <div class="res-label"><span class="status s201">201</span> Created</div>
+<pre>{
+  <span class="key">"utenteId"</span>:   <span class="num">1</span>,
+  <span class="key">"nome"</span>:       <span class="str">"Mario"</span>,
+  <span class="key">"cognome"</span>:    <span class="str">"Rossi"</span>,
+  <span class="key">"email"</span>:      <span class="str">"mario.rossi@example.com"</span>,
+  <span class="key">"authMethod"</span>: <span class="str">"password"</span>,
+  <span class="key">"createdAt"</span>:  <span class="str">"2025-12-01T10:00:00Z"</span>
+}</pre>
+    <hr>
+
+    <!-- login -->
+    <div class="endpoint-header" id="utente-login">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/utente/login</span>
+    </div>
+    <p class="endpoint-desc">Autentica l'utente e restituisce un token JWT.</p>
+    <div class="res-label">Request body</div>
+<pre>{
+  <span class="key">"email"</span>:      <span class="str">"mario.rossi@example.com"</span>,
+  <span class="key">"authMethod"</span>: <span class="str">"password"</span>,
+  <span class="key">"credential"</span>: <span class="str">"s3cr3t!"</span>
+}</pre>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"token"</span>:    <span class="str">"&lt;JWT&gt;"</span>,
+  <span class="key">"scadeAt"</span>:  <span class="str">"2025-12-01T22:00:00Z"</span>,
+  <span class="key">"utenteId"</span>: <span class="num">1</span>
+}</pre>
+    <hr>
+
+    <!-- lista -->
+    <div class="endpoint-header" id="utente-lista">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/utente/lista</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Elenco degli utenti registrati, con paginazione e filtro.</p>
+    <div class="res-label">Query params</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descrizione</th></tr></thead>
+        <tbody>
+          <tr><td><code>pagina</code></td><td>int</td><td>1</td><td>Numero di pagina</td></tr>
+          <tr><td><code>perPagina</code></td><td>int</td><td>20</td><td>Risultati per pagina (max 100)</td></tr>
+          <tr><td><code>cerca</code></td><td>string</td><td>—</td><td>Filtro su nome, cognome o email</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"totale"</span>: <span class="num">42</span>,
+  <span class="key">"pagina"</span>: <span class="num">1</span>,
+  <span class="key">"utenti"</span>: [
+    { <span class="key">"utenteId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Mario"</span>, <span class="key">"cognome"</span>: <span class="str">"Rossi"</span>, <span class="key">"email"</span>: <span class="str">"..."</span>, <span class="key">"attivo"</span>: <span class="bool">true</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- GET {id} -->
+    <div class="endpoint-header" id="utente-get">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/utente/<span class="param">{utenteId}</span></span>
+    </div>
+    <p class="endpoint-desc">Restituisce i dettagli di un singolo utente.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"utenteId"</span>:  <span class="num">1</span>,
+  <span class="key">"nome"</span>:      <span class="str">"Mario"</span>,
+  <span class="key">"cognome"</span>:   <span class="str">"Rossi"</span>,
+  <span class="key">"email"</span>:     <span class="str">"mario.rossi@example.com"</span>,
+  <span class="key">"authMethod"</span>:<span class="str">"password"</span>,
+  <span class="key">"attivo"</span>:    <span class="bool">true</span>,
+  <span class="key">"createdAt"</span>: <span class="str">"2025-12-01T10:00:00Z"</span>
+}</pre>
+    <hr>
+
+    <!-- PUT {id} -->
+    <div class="endpoint-header" id="utente-put">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/api/utente/<span class="param">{utenteId}</span></span>
+    </div>
+    <p class="endpoint-desc">Aggiorna i dati di un utente. L'utente può modificare solo i propri dati; il gestore può modificare qualsiasi utente.</p>
+    <div class="res-label">Request body (tutti i campi opzionali)</div>
+<pre>{
+  <span class="key">"nome"</span>:     <span class="str">"Mario"</span>,
+  <span class="key">"cognome"</span>:  <span class="str">"Bianchi"</span>,
+  <span class="key">"email"</span>:    <span class="str">"mario.bianchi@example.com"</span>,
+  <span class="key">"password"</span>: <span class="str">"nuovaSicura99!"</span>
+}</pre>
+    <div class="res-label"><span class="status s200">200</span> OK — oggetto utente aggiornato</div>
+    <hr>
+
+    <!-- DELETE {id} -->
+    <div class="endpoint-header" id="utente-delete">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/api/utente/<span class="param">{utenteId}</span></span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Disabilita (soft-delete) un utente. Il record rimane nel database con <code>attivo = 0</code>.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"messaggio"</span>: <span class="str">"Utente disabilitato correttamente"</span> }</pre>
+
+
+    <!-- ══ TOMBOLATA ════════════════════════════════ -->
+    <h2>2. Tombolate — <code>/api/tombolata</code></h2>
+
+    <!-- crea -->
+    <div class="endpoint-header" id="tombola-crea">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/tombolata/crea</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Crea una nuova tombolata. Lo stato iniziale è <code>creata</code>.</p>
+    <div class="res-label">Request body</div>
+<pre>{
+  <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
+  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"authMethodUtenti"</span>:             <span class="str">"password"</span>,
+  <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
+  <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>
+}</pre>
+    <div class="res-label"><span class="status s201">201</span> Created</div>
+<pre>{
+  <span class="key">"tombolataId"</span>:                  <span class="num">1</span>,
+  <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
+  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"authMethodUtenti"</span>:             <span class="str">"password"</span>,
+  <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
+  <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>,
+  <span class="key">"stato"</span>:                        <span class="str">"creata"</span>,
+  <span class="key">"createdAt"</span>:                    <span class="str">"2025-12-01T09:00:00Z"</span>
+}</pre>
+    <hr>
+
+    <!-- lista -->
+    <div class="endpoint-header" id="tombola-lista">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/lista</span>
+    </div>
+    <p class="endpoint-desc">Elenco delle tombolate, filtrabile per stato.</p>
+    <div class="res-label">Query params</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parametro</th><th>Tipo</th><th>Valori ammessi</th><th>Descrizione</th></tr></thead>
+        <tbody>
+          <tr><td><code>stato</code></td><td>string</td><td><code>creata</code>, <code>aperta</code>, <code>attiva</code>, <code>terminata</code></td><td>Filtro per stato</td></tr>
+          <tr><td><code>pagina</code></td><td>int</td><td>—</td><td>Numero di pagina</td></tr>
+          <tr><td><code>perPagina</code></td><td>int</td><td>—</td><td>Risultati per pagina</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"totale"</span>:    <span class="num">3</span>,
+  <span class="key">"tombolate"</span>: [
+    { <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Tombola di Natale 2025"</span>, <span class="key">"stato"</span>: <span class="str">"attiva"</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- GET {id} -->
+    <div class="endpoint-header" id="tombola-get">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span></span>
+    </div>
+    <p class="endpoint-desc">Dettaglio completo di una tombolata.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>:                  <span class="num">1</span>,
+  <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
+  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"stato"</span>:                        <span class="str">"attiva"</span>,
+  <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
+  <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>,
+  <span class="key">"authMethodUtenti"</span>:             <span class="str">"password"</span>,
+  <span class="key">"numeriEstrattiCount"</span>:          <span class="num">34</span>,
+  <span class="key">"createdAt"</span>:                    <span class="str">"2025-12-01T09:00:00Z"</span>
+}</pre>
+    <hr>
+
+    <!-- apri -->
+    <div class="endpoint-header" id="tombola-apri">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/apri</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Porta la tombolata nello stato <code>aperta</code>, abilitando l'assegnazione delle cartelle.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"stato"</span>: <span class="str">"aperta"</span>, <span class="key">"messaggio"</span>: <span class="str">"Tombolata aperta all'assegnazione cartelle"</span> }</pre>
+    <hr>
+
+    <!-- attiva -->
+    <div class="endpoint-header" id="tombola-attiva">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/attiva</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Avvia il gioco (stato → <code>attiva</code>). Da usare dopo il termine della deadline assegnazione cartelle.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"stato"</span>: <span class="str">"attiva"</span>, <span class="key">"messaggio"</span>: <span class="str">"Tombolata attivata, inizio estrazione numeri"</span> }</pre>
+    <hr>
+
+    <!-- termina -->
+    <div class="endpoint-header" id="tombola-termina">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/termina</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Chiude la tombolata (stato → <code>terminata</code>). Nessuna scrittura ulteriore sarà possibile.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"stato"</span>: <span class="str">"terminata"</span>, <span class="key">"messaggio"</span>: <span class="str">"Tombolata terminata"</span> }</pre>
+    <hr>
+
+    <!-- estrai -->
+    <div class="endpoint-header" id="tombola-estrai">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/estrai</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Estrae il prossimo numero casuale tra quelli non ancora usciti (1–90).</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"numero"</span>:     <span class="num">42</span>,
+  <span class="key">"ordine"</span>:     <span class="num">35</span>,
+  <span class="key">"estrattoAt"</span>: <span class="str">"2025-12-25T21:34:11Z"</span>,
+  <span class="key">"rimasti"</span>:    <span class="num">55</span>
+}</pre>
+    <div class="res-label"><span class="status s409">409</span> Conflict — tutti i 90 numeri già estratti</div>
+    <hr>
+
+    <!-- ultimo-numero -->
+    <div class="endpoint-header" id="tombola-ultimo">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/ultimo-numero</span>
+    </div>
+    <p class="endpoint-desc">Restituisce l'ultimo numero estratto.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"numero"</span>: <span class="num">42</span>, <span class="key">"ordine"</span>: <span class="num">35</span>, <span class="key">"estrattoAt"</span>: <span class="str">"2025-12-25T21:34:11Z"</span> }</pre>
+    <div class="res-label"><span class="status s404">404</span> Not Found — nessun numero ancora estratto</div>
+    <hr>
+
+    <!-- ultimi-cinque -->
+    <div class="endpoint-header" id="tombola-cinque">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/ultimi-cinque</span>
+    </div>
+    <p class="endpoint-desc">Restituisce gli ultimi 5 numeri estratti, in ordine decrescente.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"numeri"</span>: [
+    { <span class="key">"numero"</span>: <span class="num">42</span>, <span class="key">"ordine"</span>: <span class="num">35</span> },
+    { <span class="key">"numero"</span>: <span class="num">7</span>,  <span class="key">"ordine"</span>: <span class="num">34</span> },
+    { <span class="key">"numero"</span>: <span class="num">88</span>, <span class="key">"ordine"</span>: <span class="num">33</span> },
+    { <span class="key">"numero"</span>: <span class="num">15</span>, <span class="key">"ordine"</span>: <span class="num">32</span> },
+    { <span class="key">"numero"</span>: <span class="num">63</span>, <span class="key">"ordine"</span>: <span class="num">31</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- numeri-usciti -->
+    <div class="endpoint-header" id="tombola-usciti">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/numeri-usciti</span>
+    </div>
+    <p class="endpoint-desc">Tutti i numeri estratti finora, in ordine di estrazione.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>:    <span class="num">1</span>,
+  <span class="key">"totaleEstratti"</span>: <span class="num">35</span>,
+  <span class="key">"numeri"</span>: [
+    { <span class="key">"numero"</span>: <span class="num">5</span>,  <span class="key">"ordine"</span>: <span class="num">1</span>, <span class="key">"estrattoAt"</span>: <span class="str">"2025-12-25T21:00:05Z"</span> },
+    { <span class="key">"numero"</span>: <span class="num">73</span>, <span class="key">"ordine"</span>: <span class="num">2</span>, <span class="key">"estrattoAt"</span>: <span class="str">"2025-12-25T21:00:20Z"</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- controlla-vincite -->
+    <div class="endpoint-header" id="tombola-vincite-check">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/controlla-vincite</span>
+    </div>
+    <p class="endpoint-desc">Controlla tutte le cartelle e restituisce le nuove vincite rilevate (non ancora registrate). Da invocare dopo ogni estrazione.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"nuoveVincite"</span>: [
+    {
+      <span class="key">"tipoVincita"</span>:    <span class="str">"ambo"</span>,
+      <span class="key">"cartellaId"</span>:    <span class="num">12</span>,
+      <span class="key">"utenteId"</span>:      <span class="num">5</span>,
+      <span class="key">"utenteNome"</span>:    <span class="str">"Maria"</span>,
+      <span class="key">"utenteCognome"</span>: <span class="str">"Neri"</span>,
+      <span class="key">"riga"</span>:          <span class="num">2</span>,
+      <span class="key">"numeroEstratto"</span>:<span class="num">42</span>
+    }
+  ],
+  <span class="key">"vinciteTotali"</span>: [
+    { <span class="key">"tipoVincita"</span>: <span class="str">"ambo"</span>,  <span class="key">"vintaAt"</span>: <span class="str">"2025-12-25T21:10:00Z"</span>, <span class="key">"utenteId"</span>: <span class="num">3</span> },
+    { <span class="key">"tipoVincita"</span>: <span class="str">"terno"</span>, <span class="key">"vintaAt"</span>: <span class="str">"2025-12-25T21:20:00Z"</span>, <span class="key">"utenteId"</span>: <span class="num">7</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- vincita/conferma -->
+    <div class="endpoint-header" id="tombola-vincita-conferma">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/vincita/<span class="param">{vincitaId}</span>/conferma</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Il gestore conferma manualmente una vincita rilevata automaticamente.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"vincitaId"</span>: <span class="num">8</span>, <span class="key">"confermata"</span>: <span class="bool">true</span> }</pre>
+    <hr>
+
+    <!-- vincite -->
+    <div class="endpoint-header" id="tombola-vincite">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/vincite</span>
+    </div>
+    <p class="endpoint-desc">Elenco di tutte le vincite registrate per la tombolata.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"vincite"</span>: [
+    {
+      <span class="key">"vincitaId"</span>:    <span class="num">3</span>,
+      <span class="key">"tipoVincita"</span>:  <span class="str">"ambo"</span>,
+      <span class="key">"cartellaId"</span>:   <span class="num">8</span>,
+      <span class="key">"utenteId"</span>:     <span class="num">2</span>,
+      <span class="key">"utenteNome"</span>:   <span class="str">"Anna"</span>,
+      <span class="key">"utenteCognome"</span>:<span class="str">"Bianchi"</span>,
+      <span class="key">"riga"</span>:         <span class="num">1</span>,
+      <span class="key">"confermata"</span>:   <span class="bool">true</span>,
+      <span class="key">"vintaAt"</span>:      <span class="str">"2025-12-25T21:15:00Z"</span>
+    }
+  ]
+}</pre>
+    <hr>
+
+    <!-- aggiungi utente -->
+    <div class="endpoint-header" id="tombola-utente-add">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/utente/<span class="param">{utenteId}</span></span>
+    </div>
+    <p class="endpoint-desc">Iscrive un utente come partecipante alla tombolata.</p>
+    <div class="res-label"><span class="status s201">201</span> Created</div>
+<pre>{ <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"utenteId"</span>: <span class="num">5</span>, <span class="key">"joinedAt"</span>: <span class="str">"2025-12-10T08:00:00Z"</span> }</pre>
+    <hr>
+
+    <!-- utenti -->
+    <div class="endpoint-header" id="tombola-utenti">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/tombolata/<span class="param">{tombolataId}</span>/utenti</span>
+    </div>
+    <p class="endpoint-desc">Elenco dei partecipanti alla tombolata.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"partecipanti"</span>: [
+    { <span class="key">"utenteId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Mario"</span>, <span class="key">"cognome"</span>: <span class="str">"Rossi"</span>, <span class="key">"cartelleCount"</span>: <span class="num">2</span> },
+    { <span class="key">"utenteId"</span>: <span class="num">5</span>, <span class="key">"nome"</span>: <span class="str">"Maria"</span>, <span class="key">"cognome"</span>: <span class="str">"Neri"</span>,  <span class="key">"cartelleCount"</span>: <span class="num">1</span> }
+  ]
+}</pre>
+
+
+    <!-- ══ CARTELLA ══════════════════════════════════ -->
+    <h2>3. Cartelle — <code>/api/cartella</code></h2>
+
+    <!-- crea -->
+    <div class="endpoint-header" id="cartella-crea">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/cartella/crea</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Crea una o più cartelle per una tombolata. La generazione può essere automatica o manuale.</p>
+    <div class="res-label">Request body — generazione automatica</div>
+<pre>{ <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"quantita"</span>: <span class="num">3</span> }</pre>
+    <div class="res-label">Request body — generazione manuale (15 numeri con posizione)</div>
+<pre>{
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"numeri"</span>: [
+    { <span class="key">"numero"</span>: <span class="num">5</span>,  <span class="key">"riga"</span>: <span class="num">1</span>, <span class="key">"colonna"</span>: <span class="num">1</span> },
+    { <span class="key">"numero"</span>: <span class="num">17</span>, <span class="key">"riga"</span>: <span class="num">1</span>, <span class="key">"colonna"</span>: <span class="num">2</span> },
+    <span class="cmt">// ... 13 altri numeri</span>
+  ]
+}</pre>
+    <div class="info-box warning">I 15 numeri devono rispettare la struttura: 3 righe, 9 colonne, 5 numeri per riga. La colonna deve corrispondere al decile del numero (colonna 2 → numeri 10–19, ecc.).</div>
+    <div class="res-label"><span class="status s201">201</span> Created</div>
+<pre>{
+  <span class="key">"cartelle"</span>: [
+    { <span class="key">"cartellaId"</span>: <span class="num">10</span>, <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"utenteId"</span>: <span class="null">null</span> },
+    { <span class="key">"cartellaId"</span>: <span class="num">11</span>, <span class="key">"tombolataId"</span>: <span class="num">1</span>, <span class="key">"utenteId"</span>: <span class="null">null</span> }
+  ]
+}</pre>
+    <div class="res-label"><span class="status s422">422</span> — numeri duplicati, colonna incongruente con decile, ecc.</div>
+    <hr>
+
+    <!-- assegna -->
+    <div class="endpoint-header" id="cartella-assegna">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/api/cartella/assegna</span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Assegna una cartella esistente a un utente. Verifica che nessun numero della cartella si ripeta tra le cartelle già assegnate all'utente nella stessa tombolata.</p>
+    <div class="res-label">Request body</div>
+<pre>{ <span class="key">"cartellaId"</span>: <span class="num">10</span>, <span class="key">"utenteId"</span>: <span class="num">5</span> }</pre>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"cartellaId"</span>: <span class="num">10</span>, <span class="key">"utenteId"</span>: <span class="num">5</span>, <span class="key">"updatedAt"</span>: <span class="str">"2025-12-10T09:00:00Z"</span> }</pre>
+    <div class="res-label"><span class="status s422">422</span> — numero già presente in un'altra cartella dell'utente nella stessa tombolata</div>
+    <hr>
+
+    <!-- GET {id} -->
+    <div class="endpoint-header" id="cartella-get">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/cartella/<span class="param">{cartellaId}</span></span>
+    </div>
+    <p class="endpoint-desc">Dettaglio della cartella con stato di ogni numero (estratto / non estratto).</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"cartellaId"</span>:  <span class="num">10</span>,
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"utenteId"</span>:    <span class="num">5</span>,
+  <span class="key">"numeri"</span>: [
+    { <span class="key">"numero"</span>: <span class="num">5</span>,  <span class="key">"riga"</span>: <span class="num">1</span>, <span class="key">"colonna"</span>: <span class="num">1</span>, <span class="key">"estratto"</span>: <span class="bool">true</span>  },
+    { <span class="key">"numero"</span>: <span class="num">17</span>, <span class="key">"riga"</span>: <span class="num">1</span>, <span class="key">"colonna"</span>: <span class="num">2</span>, <span class="key">"estratto"</span>: <span class="bool">false</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- stato -->
+    <div class="endpoint-header" id="cartella-stato">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/cartella/<span class="param">{cartellaId}</span>/stato</span>
+    </div>
+    <p class="endpoint-desc">Stato sintetico della cartella, aggregato per riga.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"cartellaId"</span>:    <span class="num">10</span>,
+  <span class="key">"righe"</span>: [
+    {
+      <span class="key">"riga"</span>:           <span class="num">1</span>,
+      <span class="key">"numeriEstratti"</span>: <span class="num">2</span>,
+      <span class="key">"dettaglio"</span>: [
+        { <span class="key">"numero"</span>: <span class="num">5</span>,  <span class="key">"estratto"</span>: <span class="bool">true</span>  },
+        { <span class="key">"numero"</span>: <span class="num">17</span>, <span class="key">"estratto"</span>: <span class="bool">false</span> },
+        { <span class="key">"numero"</span>: <span class="num">23</span>, <span class="key">"estratto"</span>: <span class="bool">true</span>  },
+        { <span class="key">"numero"</span>: <span class="num">44</span>, <span class="key">"estratto"</span>: <span class="bool">false</span> },
+        { <span class="key">"numero"</span>: <span class="num">78</span>, <span class="key">"estratto"</span>: <span class="bool">false</span> }
+      ]
+    },
+    { <span class="key">"riga"</span>: <span class="num">2</span>, <span class="key">"numeriEstratti"</span>: <span class="num">1</span>, <span class="key">"dettaglio"</span>: [<span class="cmt">...</span>] },
+    { <span class="key">"riga"</span>: <span class="num">3</span>, <span class="key">"numeriEstratti"</span>: <span class="num">0</span>, <span class="key">"dettaglio"</span>: [<span class="cmt">...</span>] }
+  ],
+  <span class="key">"totaleEstratti"</span>:  <span class="num">3</span>,
+  <span class="key">"vinciteRaggiunte"</span>: [<span class="str">"ambo"</span>]
+}</pre>
+    <hr>
+
+    <!-- cartelle per tombolata -->
+    <div class="endpoint-header" id="cartella-tombolata">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/cartella/tombolata/<span class="param">{tombolataId}</span></span>
+    </div>
+    <p class="endpoint-desc">Tutte le cartelle di una tombolata, con filtro opzionale.</p>
+    <div class="res-label">Query params</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parametro</th><th>Tipo</th><th>Descrizione</th></tr></thead>
+        <tbody>
+          <tr><td><code>assegnata</code></td><td>boolean</td><td><code>true</code> = solo assegnate · <code>false</code> = solo libere</td></tr>
+          <tr><td><code>utenteId</code></td><td>int</td><td>Filtra per utente assegnatario</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"totale"</span>:      <span class="num">12</span>,
+  <span class="key">"cartelle"</span>: [
+    { <span class="key">"cartellaId"</span>: <span class="num">10</span>, <span class="key">"utenteId"</span>: <span class="num">5</span>,    <span class="key">"nomeUtente"</span>: <span class="str">"Maria Neri"</span>  },
+    { <span class="key">"cartellaId"</span>: <span class="num">11</span>, <span class="key">"utenteId"</span>: <span class="null">null</span>                               },
+    { <span class="key">"cartellaId"</span>: <span class="num">12</span>, <span class="key">"utenteId"</span>: <span class="num">3</span>,    <span class="key">"nomeUtente"</span>: <span class="str">"Mario Rossi"</span> }
+  ]
+}</pre>
+    <hr>
+
+    <!-- cartelle utente/tombolata -->
+    <div class="endpoint-header" id="cartella-utente-tombola">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/api/cartella/utente/<span class="param">{utenteId}</span>/tombolata/<span class="param">{tombolataId}</span></span>
+    </div>
+    <p class="endpoint-desc">Cartelle assegnate a un utente in una specifica tombolata.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{
+  <span class="key">"utenteId"</span>:    <span class="num">5</span>,
+  <span class="key">"tombolataId"</span>: <span class="num">1</span>,
+  <span class="key">"cartelle"</span>: [
+    { <span class="key">"cartellaId"</span>: <span class="num">10</span>, <span class="key">"numeriEstratti"</span>: <span class="num">3</span>, <span class="key">"vinciteRaggiunte"</span>: [<span class="str">"ambo"</span>] },
+    { <span class="key">"cartellaId"</span>: <span class="num">15</span>, <span class="key">"numeriEstratti"</span>: <span class="num">7</span>, <span class="key">"vinciteRaggiunte"</span>: [] }
+  ]
+}</pre>
+    <hr>
+
+    <!-- DELETE -->
+    <div class="endpoint-header" id="cartella-delete">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/api/cartella/<span class="param">{cartellaId}</span></span>
+      <span class="endpoint-tag">Gestore</span>
+    </div>
+    <p class="endpoint-desc">Elimina una cartella. Consentito solo se la tombolata è in stato <code>creata</code> o <code>aperta</code>.</p>
+    <div class="res-label"><span class="status s200">200</span> OK</div>
+<pre>{ <span class="key">"messaggio"</span>: <span class="str">"Cartella eliminata correttamente"</span> }</pre>
+    <div class="res-label"><span class="status s422">422</span> — impossibile eliminare cartelle di tombolate già attive</div>
+
+
+    <!-- ══ RIEPILOGO ════════════════════════════════ -->
+    <h2 id="riepilogo">Riepilogo endpoint</h2>
+
+    <h3>Utente</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metodo</th><th>Endpoint</th><th>Descrizione</th><th>Ruolo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/utente/registra</code></td><td>Registra nuovo utente</td><td>—</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/utente/login</code></td><td>Login / ottieni token JWT</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/utente/lista</code></td><td>Elenco utenti</td><td>Gestore</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/utente/{utenteId}</code></td><td>Dettaglio utente</td><td>—</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/utente/{utenteId}</code></td><td>Aggiorna utente</td><td>—</td></tr>
+          <tr><td><span class="method DELETE">DELETE</span></td><td><code>/api/utente/{utenteId}</code></td><td>Disabilita utente</td><td>Gestore</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Tombolata</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metodo</th><th>Endpoint</th><th>Descrizione</th><th>Ruolo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/tombolata/crea</code></td><td>Crea tombolata</td><td>Gestore</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/lista</code></td><td>Elenco tombolate</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}</code></td><td>Dettaglio tombolata</td><td>—</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/tombolata/{tombolataId}/apri</code></td><td>Apre assegnazione cartelle</td><td>Gestore</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/tombolata/{tombolataId}/attiva</code></td><td>Avvia il gioco</td><td>Gestore</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/tombolata/{tombolataId}/termina</code></td><td>Chiude la tombolata</td><td>Gestore</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/tombolata/{tombolataId}/estrai</code></td><td>Estrai numero</td><td>Gestore</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/ultimo-numero</code></td><td>Ultimo numero estratto</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/ultimi-cinque</code></td><td>Ultimi 5 numeri estratti</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/numeri-usciti</code></td><td>Tutti i numeri estratti</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/controlla-vincite</code></td><td>Controlla e registra vincite</td><td>—</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/tombolata/{tombolataId}/vincita/{vincitaId}/conferma</code></td><td>Conferma vincita</td><td>Gestore</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/vincite</code></td><td>Elenco vincite</td><td>—</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/tombolata/{tombolataId}/utente/{utenteId}</code></td><td>Aggiungi partecipante</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/tombolata/{tombolataId}/utenti</code></td><td>Elenco partecipanti</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cartella</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metodo</th><th>Endpoint</th><th>Descrizione</th><th>Ruolo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/cartella/crea</code></td><td>Crea cartelle (auto o manuale)</td><td>Gestore</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/cartella/assegna</code></td><td>Assegna cartella a utente</td><td>Gestore</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/cartella/{cartellaId}</code></td><td>Dettaglio cartella con stato numeri</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/cartella/{cartellaId}/stato</code></td><td>Stato sintetico per riga</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/cartella/tombolata/{tombolataId}</code></td><td>Tutte le cartelle di una tombolata</td><td>—</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/cartella/utente/{utenteId}/tombolata/{tombolataId}</code></td><td>Cartelle di un utente nella tombolata</td><td>—</td></tr>
+          <tr><td><span class="method DELETE">DELETE</span></td><td><code>/api/cartella/{cartellaId}</code></td><td>Elimina cartella (solo pre-attivazione)</td><td>Gestore</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ REGOLE ════════════════════════════════════ -->
+    <h2 id="regole">Regole di business</h2>
+    <ol style="color:#44495a; padding-left:20px;">
+      <li style="margin-bottom:8px;"><strong>Unicità numeri per utente</strong> — un utente non può avere lo stesso numero in due cartelle diverse della stessa tombolata.</li>
+      <li style="margin-bottom:8px;"><strong>Struttura cartella</strong> — 3 righe, 9 colonne, 5 numeri per riga, 15 totali. Colonna determinata dal decile del numero.</li>
+      <li style="margin-bottom:8px;"><strong>Coerenza colonna/decile</strong> — verificata a livello DB con vincolo CHECK.</li>
+      <li style="margin-bottom:8px;"><strong>Vincite in ordine crescente</strong> — ambo → terno → quaterna → cinquina → tombola.</li>
+      <li style="margin-bottom:8px;"><strong>Esclusione vincitore</strong> — un utente che ha raggiunto il livello N non concorre al livello N+1.</li>
+      <li style="margin-bottom:8px;"><strong>Estrazione senza ripetizione</strong> — ogni numero può essere estratto al massimo una volta per tombolata.</li>
+      <li style="margin-bottom:8px;"><strong>Deadline assegnazione</strong> — dopo <code>dataFineAssegnazioneCartelle</code> non è possibile assegnare nuove cartelle.</li>
+      <li style="margin-bottom:8px;"><strong>Transizione stati unidirezionale</strong> — <code>creata → aperta → attiva → terminata</code>.</li>
+    </ol>
+
+    <footer>
+      Tombola as a Service (TaaS) &nbsp;·&nbsp; Specifiche API REST v1 &nbsp;·&nbsp; Aprile 2026
+    </footer>
+  </main>
+</div>
+</body>
+</html>
