@@ -287,14 +287,12 @@
       <span class="endpoint-path">/api/utente/lista</span>
       <span class="endpoint-tag">Gestore</span>
     </div>
-    <p class="endpoint-desc">Elenco degli utenti registrati, con paginazione e filtro.</p>
+    <p class="endpoint-desc">Elenco degli utenti registrati, con filtro.</p>
     <div class="res-label">Query params</div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Parametro</th><th>Tipo</th><th>Default</th><th>Descrizione</th></tr></thead>
         <tbody>
-          <tr><td><code>pagina</code></td><td>int</td><td>1</td><td>Numero di pagina</td></tr>
-          <tr><td><code>perPagina</code></td><td>int</td><td>20</td><td>Risultati per pagina (max 100)</td></tr>
           <tr><td><code>cerca</code></td><td>string</td><td>—</td><td>Filtro su nome, cognome o email</td></tr>
         </tbody>
       </table>
@@ -302,7 +300,6 @@
     <div class="res-label"><span class="status s200">200</span> OK</div>
 <pre>{
   <span class="key">"totale"</span>: <span class="num">42</span>,
-  <span class="key">"pagina"</span>: <span class="num">1</span>,
   <span class="key">"utenti"</span>: [
     { <span class="key">"utenteId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Mario"</span>, <span class="key">"cognome"</span>: <span class="str">"Rossi"</span>, <span class="key">"email"</span>: <span class="str">"..."</span>, <span class="key">"attivo"</span>: <span class="bool">true</span> }
   ]
@@ -397,8 +394,6 @@
         <thead><tr><th>Parametro</th><th>Tipo</th><th>Valori ammessi</th><th>Descrizione</th></tr></thead>
         <tbody>
           <tr><td><code>stato</code></td><td>string</td><td><code>creata</code>, <code>aperta</code>, <code>attiva</code>, <code>terminata</code></td><td>Filtro per stato</td></tr>
-          <tr><td><code>pagina</code></td><td>int</td><td>—</td><td>Numero di pagina</td></tr>
-          <tr><td><code>perPagina</code></td><td>int</td><td>—</td><td>Risultati per pagina</td></tr>
         </tbody>
       </table>
     </div>
