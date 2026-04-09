@@ -248,7 +248,8 @@
   <span class="key">"cognome"</span>:    <span class="str">"Rossi"</span>,
   <span class="key">"email"</span>:      <span class="str">"mario.rossi@example.com"</span>,
   <span class="key">"authMethod"</span>: <span class="str">"password"</span>,
-  <span class="key">"password"</span>:   <span class="str">"s3cr3t!"</span>
+  <span class="key">"password"</span>:   <span class="str">"s3cr3t!"</span>,
+  <span class="key">"tipo"</span>:       <span class="num">1</span>  <span class="cmt">// 0 = Admin · 1 = User · 2 = Guest</span>
 }</pre>
     <div class="res-label"><span class="status s201">201</span> Created</div>
 <pre>{
@@ -257,6 +258,7 @@
   <span class="key">"cognome"</span>:    <span class="str">"Rossi"</span>,
   <span class="key">"email"</span>:      <span class="str">"mario.rossi@example.com"</span>,
   <span class="key">"authMethod"</span>: <span class="str">"password"</span>,
+  <span class="key">"tipo"</span>:       <span class="num">1</span>,
   <span class="key">"createdAt"</span>:  <span class="str">"2025-12-01T10:00:00Z"</span>
 }</pre>
     <hr>
@@ -301,7 +303,7 @@
 <pre>{
   <span class="key">"totale"</span>: <span class="num">42</span>,
   <span class="key">"utenti"</span>: [
-    { <span class="key">"utenteId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Mario"</span>, <span class="key">"cognome"</span>: <span class="str">"Rossi"</span>, <span class="key">"email"</span>: <span class="str">"..."</span>, <span class="key">"attivo"</span>: <span class="bool">true</span> }
+    { <span class="key">"utenteId"</span>: <span class="num">1</span>, <span class="key">"nome"</span>: <span class="str">"Mario"</span>, <span class="key">"cognome"</span>: <span class="str">"Rossi"</span>, <span class="key">"email"</span>: <span class="str">"..."</span>, <span class="key">"tipo"</span>: <span class="num">1</span>, <span class="key">"attivo"</span>: <span class="bool">true</span> }
   ]
 }</pre>
     <hr>
@@ -319,6 +321,7 @@
   <span class="key">"cognome"</span>:   <span class="str">"Rossi"</span>,
   <span class="key">"email"</span>:     <span class="str">"mario.rossi@example.com"</span>,
   <span class="key">"authMethod"</span>:<span class="str">"password"</span>,
+  <span class="key">"tipo"</span>:      <span class="num">1</span>,
   <span class="key">"attivo"</span>:    <span class="bool">true</span>,
   <span class="key">"createdAt"</span>: <span class="str">"2025-12-01T10:00:00Z"</span>
 }</pre>
@@ -335,7 +338,8 @@
   <span class="key">"nome"</span>:     <span class="str">"Mario"</span>,
   <span class="key">"cognome"</span>:  <span class="str">"Bianchi"</span>,
   <span class="key">"email"</span>:    <span class="str">"mario.bianchi@example.com"</span>,
-  <span class="key">"password"</span>: <span class="str">"nuovaSicura99!"</span>
+  <span class="key">"password"</span>: <span class="str">"nuovaSicura99!"</span>,
+  <span class="key">"tipo"</span>:     <span class="num">1</span>  <span class="cmt">// 0 = Admin · 1 = User · 2 = Guest</span>
 }</pre>
     <div class="res-label"><span class="status s200">200</span> OK — oggetto utente aggiornato</div>
     <hr>
@@ -364,7 +368,7 @@
     <div class="res-label">Request body</div>
 <pre>{
   <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
-  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"gestoreId"</span>:                    <span class="num">3</span>,
   <span class="key">"authMethodUtenti"</span>:             <span class="str">"password"</span>,
   <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
   <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>
@@ -373,7 +377,7 @@
 <pre>{
   <span class="key">"tombolataId"</span>:                  <span class="num">1</span>,
   <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
-  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"gestoreId"</span>:                    <span class="num">3</span>,
   <span class="key">"authMethodUtenti"</span>:             <span class="str">"password"</span>,
   <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
   <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>,
@@ -416,7 +420,7 @@
 <pre>{
   <span class="key">"tombolataId"</span>:                  <span class="num">1</span>,
   <span class="key">"nome"</span>:                         <span class="str">"Tombola di Natale 2025"</span>,
-  <span class="key">"gestoreNome"</span>:                  <span class="str">"Luigi Verdi"</span>,
+  <span class="key">"gestoreId"</span>:                    <span class="num">3</span>,
   <span class="key">"stato"</span>:                        <span class="str">"attiva"</span>,
   <span class="key">"dataAttivazione"</span>:              <span class="str">"2025-12-25T21:00:00Z"</span>,
   <span class="key">"dataFineAssegnazioneCartelle"</span>: <span class="str">"2025-12-25T20:30:00Z"</span>,

@@ -323,7 +323,7 @@
         <thead><tr><th>Tabella</th><th>Dipende da</th><th>Descrizione</th></tr></thead>
         <tbody>
           <tr><td><code>utenti</code></td><td>—</td><td>Utenti registrati alla piattaforma</td></tr>
-          <tr><td><code>tombolate</code></td><td>—</td><td>Sessioni di gioco</td></tr>
+          <tr><td><code>tombolate</code></td><td><code>utenti</code></td><td>Sessioni di gioco (gestoreId → utenti)</td></tr>
           <tr><td><code>tombolate_utenti</code></td><td><code>tombolate</code>, <code>utenti</code></td><td>Partecipanti registrati a una tombolata</td></tr>
           <tr><td><code>cartelle</code></td><td><code>tombolate</code>, <code>utenti</code></td><td>Cartelle di gioco (assegnate o libere)</td></tr>
           <tr><td><code>numeri_cartella</code></td><td><code>cartelle</code></td><td>I 15 numeri di ogni cartella, con riga e colonna</td></tr>
@@ -351,6 +351,7 @@
             <tr><td><code>email</code></td><td>TEXT / VARCHAR(255)</td><td>NOT NULL, UNIQUE</td><td>Indirizzo email (usato per il login)</td></tr>
             <tr><td><code>authMethod</code></td><td>TEXT / ENUM</td><td>NOT NULL, default <code>'password'</code></td><td>Metodo di autenticazione: <code>password</code>, <code>otp</code>, <code>oauth</code>, <code>magic_link</code></td></tr>
             <tr><td><code>authData</code></td><td>TEXT</td><td>nullable</td><td>Hash password, token OAuth, ecc.</td></tr>
+            <tr><td><code>tipo</code></td><td>INTEGER / TINYINT UNSIGNED</td><td>NOT NULL, default <code>1</code>, CHECK 0–2</td><td>Ruolo dell'utente: <code>0</code> = Admin · <code>1</code> = User · <code>2</code> = Guest</td></tr>
             <tr><td><code>attivo</code></td><td>INTEGER / TINYINT</td><td>NOT NULL, default <code>1</code></td><td><code>0</code> = utente disabilitato (soft-delete)</td></tr>
             <tr><td><code>createdAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Data di registrazione</td></tr>
             <tr><td><code>updatedAt</code></td><td>TEXT / DATETIME</td><td>NOT NULL, default now</td><td>Ultimo aggiornamento</td></tr>
@@ -365,6 +366,7 @@
       <div class="schema-card-header">
         <span class="table-name">tombolate</span>
         <span class="badge badge-blue">PK: tombolataId</span>
+        <span class="badge badge-gray">FK: gestoreId</span>
         <span class="table-desc">Sessioni di gioco</span>
       </div>
       <div class="table-wrap" style="margin:0; border:none; border-radius:0;">
@@ -373,7 +375,7 @@
           <tbody>
             <tr><td><code>tombolataId</code></td><td>INTEGER / INT UNSIGNED</td><td>PK, AUTO</td><td>Identificatore univoco</td></tr>
             <tr><td><code>nome</code></td><td>TEXT / VARCHAR(200)</td><td>NOT NULL</td><td>Nome della tombolata</td></tr>
-            <tr><td><code>gestoreNome</code></td><td>TEXT / VARCHAR(200)</td><td>NOT NULL</td><td>Nome del gestore della sessione</td></tr>
+            <tr><td><code>gestoreId</code></td><td>INTEGER / INT UNSIGNED</td><td>NOT NULL, FK → <code>utenti</code></td><td>Utente che crea e gestisce la sessione (tipo = 0, Admin)</td></tr>
             <tr><td><code>authMethodUtenti</code></td><td>TEXT / ENUM</td><td>NOT NULL, default <code>'password'</code></td><td>Metodo di autenticazione imposto agli utenti: <code>password</code>, <code>otp</code>, <code>oauth</code>, <code>magic_link</code>, <code>none</code></td></tr>
             <tr><td><code>dataAttivazione</code></td><td>TEXT / DATETIME</td><td>nullable</td><td>Data e ora pianificate per l'inizio del gioco</td></tr>
             <tr><td><code>dataFineAssegnazioneCartelle</code></td><td>TEXT / DATETIME</td><td>nullable</td><td>Deadline entro cui assegnare le cartelle agli utenti</td></tr>

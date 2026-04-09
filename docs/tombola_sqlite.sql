@@ -24,6 +24,8 @@ CREATE TABLE utenti (
         -- valori: 'password' | 'otp' | 'oauth' | 'magic_link'
     authData    TEXT,
         -- hash della password, token oauth, ecc. (dipende da authMethod)
+    tipo        INTEGER NOT NULL DEFAULT 1 CHECK (tipo BETWEEN 0 AND 2),
+        -- 0 = Admin | 1 = User | 2 = Guest
     attivo      INTEGER NOT NULL DEFAULT 1,  -- 0 = disabilitato
     createdAt   TEXT    NOT NULL DEFAULT (datetime('now')),
     updatedAt   TEXT    NOT NULL DEFAULT (datetime('now'))
@@ -37,7 +39,8 @@ CREATE INDEX idx_utenti_email ON utenti(email);
 CREATE TABLE tombolate (
     tombolataId                     INTEGER PRIMARY KEY AUTOINCREMENT,
     nome                            TEXT    NOT NULL,
-    gestoreNome                     TEXT    NOT NULL,
+    gestoreId                       INTEGER NOT NULL REFERENCES utenti(utenteId),
+        -- FK all'utente che crea e gestisce la tombolata (deve avere tipo = 0, Admin)
     authMethodUtenti                TEXT    NOT NULL DEFAULT 'password',
         -- valori: 'password' | 'otp' | 'oauth' | 'magic_link' | 'none'
     dataAttivazione                 TEXT,
@@ -53,6 +56,8 @@ CREATE TABLE tombolate (
     createdAt                       TEXT    NOT NULL DEFAULT (datetime('now')),
     updatedAt                       TEXT    NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE INDEX idx_tombolate_gestore ON tombolate(gestoreId);
 
 -- ------------------------------------------------------------
 -- TOMBOLATE_UTENTI  (partecipanti registrati a una tombolata)

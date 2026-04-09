@@ -23,18 +23,21 @@ SET time_zone = '+00:00';
 -- UTENTI
 -- ------------------------------------------------------------
 CREATE TABLE utenti (
-    utenteId    INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    nome        VARCHAR(100) NOT NULL,
-    cognome     VARCHAR(100) NOT NULL,
-    email       VARCHAR(255) NOT NULL,
+    utenteId    INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    nome        VARCHAR(100)     NOT NULL,
+    cognome     VARCHAR(100)     NOT NULL,
+    email       VARCHAR(255)     NOT NULL,
     authMethod  ENUM('password','otp','oauth','magic_link')
-                             NOT NULL DEFAULT 'password',
-    authData    TEXT                  DEFAULT NULL,
+                                 NOT NULL DEFAULT 'password',
+    authData    TEXT                      DEFAULT NULL,
         -- hash della password, token oauth, ecc. (dipende da authMethod)
-    attivo      TINYINT(1)   NOT NULL DEFAULT 1,
-    createdAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updatedAt   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                      ON UPDATE CURRENT_TIMESTAMP,
+    tipo        TINYINT UNSIGNED NOT NULL DEFAULT 1
+                    COMMENT '0 = Admin | 1 = User | 2 = Guest',
+    CONSTRAINT chk_utenti_tipo CHECK (tipo BETWEEN 0 AND 2),
+    attivo      TINYINT(1)       NOT NULL DEFAULT 1,
+    createdAt   DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt   DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                          ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (utenteId),
     UNIQUE KEY uq_utenti_email (email),
     INDEX idx_utenti_email (email)
@@ -46,7 +49,8 @@ CREATE TABLE utenti (
 CREATE TABLE tombolate (
     tombolataId                     INT UNSIGNED NOT NULL AUTO_INCREMENT,
     nome                            VARCHAR(200) NOT NULL,
-    gestoreNome                     VARCHAR(200) NOT NULL,
+    gestoreId                       INT UNSIGNED NOT NULL
+                                        COMMENT 'FK all\'utente che crea e gestisce la tombolata',
     authMethodUtenti                ENUM('password','otp','oauth','magic_link','none')
                                                  NOT NULL DEFAULT 'password',
     dataAttivazione                 DATETIME              DEFAULT NULL,
@@ -61,7 +65,11 @@ CREATE TABLE tombolate (
     updatedAt                       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                           ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (tombolataId),
-    INDEX idx_tombolate_stato (stato)
+    INDEX idx_tombolate_stato    (stato),
+    INDEX idx_tombolate_gestore  (gestoreId),
+    CONSTRAINT fk_tombolate_gestore
+        FOREIGN KEY (gestoreId) REFERENCES utenti(utenteId)
+        ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
